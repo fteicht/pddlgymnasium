@@ -1,15 +1,17 @@
 from setuptools import setup, find_packages
 
-setup(name='pddlgym',
-      version='0.0.7',
+setup(name='pddlgymnasium',
+      version='0.0.0',
       install_requires=[
             'matplotlib',
             'pillow>=8,<10',
-            'gym>=0.24.0',
+            'gymnasium<1.0.0',
             'imageio',
             'networkx',
             'scikit-image',
       ],
+      python_requires='>=3.8',
       packages=find_packages(),
+      package_data={'pddlgymnasium': ['rendering/assets/*', '**/*.pddl']},
       include_package_data=True,
 )

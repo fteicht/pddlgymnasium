@@ -1,16 +1,12 @@
 [![Build Status](https://travis-ci.com/tomsilver/pddlgym.svg?branch=master)](https://travis-ci.com/tomsilver/pddlgym)
 
-# PDDLGym: PDDL &rarr; OpenAI Gym
+# PDDLGymnasium: PDDL &rarr; Gymnasium
 
 ![Sokoban example](images/sokoban_example.gif?raw=true "Sokoban example")
 
-**This library is under development by [Tom Silver](http://web.mit.edu/tslvr/www/) and [Rohan Chitnis](https://rohanchitnis.com/). Correspondence: <tslvr@mit.edu> and <ronuchit@gmail.com>.**
-
-## Paper
-
-Please see [our paper](https://arxiv.org/abs/2002.06432) describing the design decisions and implementation details behind PDDLGym.
-
-## Status
+> This is a fork of [pddlym](https://github.com/tomsilver/pddlgym), a library developed by [Tom Silver](http://web.mit.edu/tslvr/www/) and [Rohan Chitnis](https://rohanchitnis.com/). Correspondence: <tslvr@mit.edu> and <ronuchit@gmail.com>.
+> Please see [their paper](https://arxiv.org/abs/2002.06432) describing the design decisions and implementation details behind PDDLGym.
+> This fork is intended for usage with the actively maintained version of OpenAI's [gym](https://github.com/openai/gym) called [gymnasium](https://github.com/Farama-Foundation/Gymnasium)
 
 **We support the following subset of PDDL1.2:**
 - STRIPS
@@ -55,18 +51,20 @@ Sister packages: [pyperplan](https://github.com/aibasel/pyperplan) and [rddlgym]
 
 ### Python version
 
-We require Python 3.6+.
+We require Python 3.8+
 
 ### Installing via pip
 
-`pip install pddlgym`
+```shell
+pip install "git+https://github.com/CLAIR-LAB-TECHNION/pddlgymnasium"
+```
 
 ### Installing from source (if you want to make changes to PDDLGym)
 
-First, set up a virtual environment with Python 3. For instance, if you use [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/), you can simply run ``mkvirtualenv --python=`which python3` pddlgymenv``. Next, clone this repository, and from inside it run `pip install -e .`. Now you should able to run the random agent demos in `pddlgym/demo.py`. You should also be able to `import pddlgym` from any Python shell.
+First, set up a virtual environment with Python 3. For instance, if you use [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/), you can simply run ``mkvirtualenv --python=`which python3` pddlgymenv``. Next, clone this repository, and from inside it run `pip install -e .`. Now you should able to run the random agent demos in `pddlgymnasium/demo.py`. You should also be able to `import pddlgymnasium` from any Python shell.
 
 ### Planner dependencies (optional)
-To be able to run the planning demos in `pddlgym/demo_planning.py`, see our companion repository [pddlgym_planners](https://github.com/ronuchit/pddlgym_planners), which provides an interface to FastForward and FastDownward.
+To be able to run the planning demos in `pddlgymnasium/demo_planning.py`, see our companion repository [pddlgym_planners](https://github.com/ronuchit/pddlgym_planners), which provides an interface to FastForward and FastDownward.
 
 ### Prolog dependencies (optional)
 For a small number of domains, we rely on [SWI-Prolog](https://www.swi-prolog.org/download/stable). Install the stable version directly from the website and follow their instructions to ensure the `swipl` command works in your terminal.
@@ -75,7 +73,7 @@ For a small number of domains, we rely on [SWI-Prolog](https://www.swi-prolog.or
 If you encounter an error message that seems related to rendering (e.g. https://github.com/tomsilver/pddlgym/issues/47), it's possible that your `matplotlib` backend needs to be reconfigured. Try to use the `agg` backend by adding this line to the top of your script, before anything else is imported: `import matplotlib; matplotlib.use('agg')`
 
 ### Running unit tests
-If everything is installed properly, `pytest pddlgym/tests/` should succeed.
+If everything is installed properly, `pytest pddlgymnasium/tests/` should succeed.
 
 ## Usage examples
 
@@ -94,16 +92,16 @@ img = env.render()
 imageio.imsave("frame2.png", img)
 ```
 
-See also `pddlgym/demo.py`.
+See also `pddlgymnasium/demo.py`.
 
 ### Plan with FastDownward
 To run this example, make sure you install the optional companion repository [pddlgym_planners](https://github.com/ronuchit/pddlgym_planners).
 ```python
-import pddlgym
+import pddlgymnasium as gym
 from pddlgym_planners.fd import FD
 
 # See `pddl/sokoban.pddl` and `pddl/sokoban/problem3.pddl`.
-env = pddlgym.make("PDDLEnvSokoban-v0")
+env = gym.make("PDDLEnvSokoban-v0")
 env.fix_problem_index(2)
 obs, debug_info = env.reset()
 planner = FD()
@@ -115,7 +113,7 @@ for act in plan:
 print("Final obs, reward, done:", obs, reward, done)
 ```
 
-See also `pddlgym/demo_planning.py`.
+See also `pddlgymnasium/demo_planning.py`.
 
 ## Observation representation
 
@@ -127,22 +125,22 @@ As in OpenAI Gym, calling `env.reset()` or `env.step()` will return an observati
 Create a domain PDDL file and one or more problem PDDL files. (Note: Only a certain subset of PDDL is supported right now -- see "Status" above.) Put the domain file in `pddl/` and the problem files in `pddl/<domain name>`. Make sure that the name of your new domain is consistent and is used for the domain pddl filename and the problem directory.
 
 ### Step 2 (optional): Implement rendering
-* Implement a render function in a new file in `rendering/`. For an example, see `pddlgym/rendering/rearrangement.py`. See the Observation representation section for a description of the representation of the argument `obs` passed into the render function. Update `pddlgym/rendering/__init__.py` to import your new function.
+* Implement a render function in a new file in `rendering/`. For an example, see `pddlgymnasium/rendering/rearrangement.py`. See the Observation representation section for a description of the representation of the argument `obs` passed into the render function. Update `pddlgymnasium/rendering/__init__.py` to import your new function.
 
 ### Step 3: Register Gym environment
-* Update the list in `pddlgym/__init__.py` to register your new environment. There are several methods for doing so:
+* Update the list in `pddlgymnasium/__init__.py` to register your new environment. There are several methods for doing so:
 
 #### **Simple** (recommended if you want to spin up quickly with off-the-shelf PDDL files)
 Let's say your domain name is "mypddlgymenv" and your render function is mypddlgymenv_render. Then you would add to the list the following entry: `('mypddlgymenv', {'render': mypddlgymenv_render, 'operators_as_actions': True, 'dynamic_action_space': True})`. You can leave out the "render" entry if you don't have a render function.
-* What these arguments mean: by default, PDDLGym requires modifying the PDDL files to make a distinction between "actions" and "operators", related to the boundary between agent and environment. The rationale is described in Section 2.2 of [our paper](https://arxiv.org/abs/2002.06432). Setting "operators_as_actions" to True eliminates this distinction, and makes it so you can use off-the-shelf PDDL files without modification. Setting "dynamic_action_space" to True causes `env.action_space` to change on each iteration to include only valid actions (those that match the operator preconditions), which can be useful in, for example, policy learning.
+* What these arguments mean: by default, PDDLGym requires modifying the PDDL files to make a distinction between "actions" and "operators", related to the boundary between agent and environment. The rationale is described in Section 2.2 of [the original paper](https://arxiv.org/abs/2002.06432). Setting "operators_as_actions" to True eliminates this distinction, and makes it so you can use off-the-shelf PDDL files without modification. Setting "dynamic_action_space" to True causes `env.action_space` to change on each iteration to include only valid actions (those that match the operator preconditions), which can be useful in, for example, policy learning.
 #### **More complex** (recommended for more serious research)
-If you plan to use PDDLGym for non-trivial domains, you will almost certainly need to make the distinction between operators and actions, by letting "operators_as_actions" be False (the default) for your new domain in `pddlgym/__init__.py`. Actions are the things passed from the agent to the environment, like motor commands on a robot. Operators describe the environmental consequences of the agent's actions. For instance, a `moveto` command may only be parameterized by a target pose from the perspective of the agent, but internally to the environment, it must also be parameterized by the current pose because a literal must be created specifying that the agent is no longer at this current pose. In order to handle this, you will need to update your PDDL files by including special predicates called "action predicate". Action predicates must be incorporated in four places:
+If you plan to use PDDLGym for non-trivial domains, you will almost certainly need to make the distinction between operators and actions, by letting "operators_as_actions" be False (the default) for your new domain in `pddlgymnasium/__init__.py`. Actions are the things passed from the agent to the environment, like motor commands on a robot. Operators describe the environmental consequences of the agent's actions. For instance, a `moveto` command may only be parameterized by a target pose from the perspective of the agent, but internally to the environment, it must also be parameterized by the current pose because a literal must be created specifying that the agent is no longer at this current pose. In order to handle this, you will need to update your PDDL files by including special predicates called "action predicate". Action predicates must be incorporated in four places:
 1. Alongside the typical predicate declarations in the domain file.
 2. In a space-separated list of format `; (:actions <action predicate name 1> <action predicate name 2> ...)` in the domain file. (Note the semicolon at the beginning!)
 3. One variable-grounded action predicate should appear in the preconditions of every operator in the domain file.
 4. In each problem file, all possible ground actions should be listed alongside the other :init declarations.
 
-See `pddlgym/pddl/blocks.pddl` and `pddlgym/pddl/blocks/problem1.pddl` for an example to follow, where there are four action predicates: pickup, putdown, stack, and unstack.
+See `pddlgymnasium/pddl/blocks.pddl` and `pddlgymnasium/pddl/blocks/problem1.pddl` for an example to follow, where there are four action predicates: pickup, putdown, stack, and unstack.
 
 ## Citation
 

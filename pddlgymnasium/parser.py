@@ -466,10 +466,23 @@ class PDDLDomainParser(PDDLParser, PDDLDomain):
             self.actions = set()
 
     def _parse_actions(self):
-        start_ind = re.search(r"\(:actions", self.domain).start()
-        actions = self._find_balanced_expression(self.domain, start_ind)
-        actions = actions[9:-1].strip()
-        return set(actions.split())
+        # no actions whatsoever
+        re_match = re.search(r"\(:action", self.domain)
+        if re_match is None:
+            raise ValueError("No actions found in domain file")
+
+        # scan domain file for (:action ... ) expressions and extract the action name
+        actions = set()
+        working_domain_file = self.domain[:]
+        while re_match is not None:
+            start_ind = re_match.start()
+            action_expression = self._find_balanced_expression(working_domain_file, start_ind)
+            action_name = action_expression.split()[1]
+            actions.add(action_name)
+            working_domain_file = working_domain_file[start_ind+1:]
+            re_match = re.search(r"\(:action", working_domain_file)
+
+        return actions
 
     def _create_actions_from_operators(self):
         actions = set()

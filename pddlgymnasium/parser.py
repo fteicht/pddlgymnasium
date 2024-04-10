@@ -562,31 +562,45 @@ class PDDLDomainParser(PDDLParser, PDDLDomain):
                 uses_typing=self.uses_typing)
 
     def _parse_domain_predicates(self):
+        # find all predicates in the domain
         start_ind = re.search(r"\(:predicates", self.domain).start()
         predicates = self._find_balanced_expression(self.domain, start_ind)
         predicates = predicates[12:-1].strip()
         predicates = self._find_all_balanced_expressions(predicates)
+
+
+        # iterate predicates and extract info
         self.predicates = {}
         for pred in predicates:
             pred = pred.strip()[1:-1].split("?")
+
             pred_name = pred[0].strip()
-            # arg_types = [self.types[arg.strip().split("-")[1].strip()]
-            #              for arg in pred[1:]]
-            arg_types = []
-            for arg in pred[1:]:
-                if ' - ' in arg:
-                    assert arg_types is not None, "Mixing of typed and untyped args not allowed"
-                    assert self.uses_typing
-                    arg_type = self.types[arg.strip().split("-", 1)[1].strip()]
-                    arg_types.append(arg_type)
-                else:
-                    assert not self.uses_typing
-                    arg_types.append(self.types["default"])
+            arg_declarations = [arg.strip() for arg in pred[1:]]
+
+            # extract type for each arg
+            if self.uses_typing:
+                arg_types = self._extract_typed_arg_types(arg_declarations)
+            else:
+                arg_types = [self.types["default"]] * len(pred[1:])
+
             self.predicates[pred_name] = Predicate(
-                pred_name, len(pred[1:]), arg_types)
+                pred_name, len(arg_declarations), arg_types)
+
         # Handle equality
         if "=" in self.domain:
             self.predicates["="] = Predicate("=", 2)
+
+    def _extract_typed_arg_types(self, arg_declarations):
+        arg_types = []
+        untyped_args_counter = 0
+        for arg in arg_declarations:
+            untyped_args_counter += 1
+            if '-' in arg:  # typed argument, this will be the type of all args after the previous type
+                arg_type = self.types[arg.strip().split("-", 1)[1].strip()]
+                arg_types.extend([arg_type] * untyped_args_counter)
+                untyped_args_counter = 0
+        assert untyped_args_counter == 0, "last argument must have a type"
+        return arg_types
 
     def _parse_domain_derived_predicates(self):
         for match in re.finditer(r"\(:derived", self.domain):
@@ -620,9 +634,9 @@ class PDDLDomainParser(PDDLParser, PDDLDomain):
             op_name = op_name.strip()
             params = params.strip()[1:-1].split("?")
             if self.uses_typing:
-                params = [(param.strip().split("-", 1)[0].strip(),
-                           param.strip().split("-", 1)[1].strip())
-                          for param in params[1:]]
+                arg_names = [p.strip().split("-")[0].strip() for p in params[1:]]
+                arg_types = self._extract_typed_arg_types(params[1:])
+                params = zip(arg_names, arg_types)
                 params = [self.types[v]("?"+k) for k, v in params]
             else:
                 params = [param.strip() for param in params[1:]]

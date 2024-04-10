@@ -466,6 +466,14 @@ class PDDLDomainParser(PDDLParser, PDDLDomain):
             self.actions = set()
 
     def _parse_actions(self):
+        # support legacy (:actions ... ) comment with matching predicates
+        re_match = re.search(r"\(:actions", self.domain)
+        if re_match is not None:
+            start_ind = re_match.start()
+            actions = self._find_balanced_expression(self.domain, start_ind)
+            actions = actions[9:-1].strip()
+            return set(actions.split())
+
         # no actions whatsoever
         re_match = re.search(r"\(:action", self.domain)
         if re_match is None:

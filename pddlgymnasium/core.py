@@ -283,8 +283,8 @@ class PDDLEnv(gym.Env):
     ----------
     domain_file : str
         Path to a PDDL domain file.
-    problem_dir : str
-        Path to a directory of PDDL problem files.
+    problem_path : str
+        Path to a PDDL problem file or directory of PDDL problem files.
     render : fn or None
         An optional render function (obs -> img).
     seed : int
@@ -300,13 +300,13 @@ class PDDLEnv(gym.Env):
         Let self.action_space dynamically change on each iteration to
         include only valid actions (must match operator preconditions).
     """
-    def __init__(self, domain_file, problem_dir, render=None, seed=0,
+    def __init__(self, domain_file, problem_path, render=None, seed=0,
                  raise_error_on_invalid_action=False,
                  operators_as_actions=False,
                  dynamic_action_space=False):
         self._state = None
-        self._domain_file = domain_file
-        self._problem_dir = problem_dir
+        self._domain_path = domain_file
+        self._problem_path = problem_path
         self._render = render
         self.seed(seed)
         self._raise_error_on_invalid_action = raise_error_on_invalid_action
@@ -318,8 +318,8 @@ class PDDLEnv(gym.Env):
         self._problem_idx = None
 
         # Parse the PDDL files
-        self.domain, self.problems = self.load_pddl(domain_file, problem_dir,
-            operators_as_actions=self.operators_as_actions)
+        self.domain, self.problems = self.load_pddl(domain_file, problem_path,
+                                                    operators_as_actions=self.operators_as_actions)
 
         # Determine if the domain is STRIPS
         self._domain_is_strips = _check_domain_for_strips(self.domain)
@@ -352,7 +352,7 @@ class PDDLEnv(gym.Env):
             type_to_parent_types=self.domain.type_to_parent_types)
 
     @staticmethod
-    def load_pddl(domain_file, problem_dir, operators_as_actions=False):
+    def load_pddl(domain_file, problem_path, operators_as_actions=False):
         """
         Parse domain and problem PDDL files.
 
@@ -360,8 +360,8 @@ class PDDLEnv(gym.Env):
         ----------
         domain_file : str
             Path to a PDDL domain file.
-        problem_dir : str
-            Path to a directory of PDDL problem files.
+        problem_path : str
+            Path to a PDDL problem file or directory of PDDL problem files.
         operators_as_actions : bool
             See class docstirng.
 
@@ -370,11 +370,19 @@ class PDDLEnv(gym.Env):
         domain : PDDLDomainParser
         problems : [ PDDLProblemParser ]
         """
-        domain = PDDLDomainParser(domain_file, 
+        # parse domain file
+        domain = PDDLDomainParser(domain_file,
             expect_action_preds=(not operators_as_actions),
             operators_as_actions=operators_as_actions)
+
+        # gather problem files
+        if os.path.isfile(problem_path):  # if file given, treat as a list of 1 problem
+            problem_files = [problem_path]
+        else:
+            problem_files = [f for f in glob.glob(os.path.join(problem_path, "*.pddl"))]
+
+        # parse problem files one by one
         problems = []
-        problem_files = [f for f in glob.glob(os.path.join(problem_dir, "*.pddl"))]
         for problem_file in sorted(problem_files):
             problem = PDDLProblemParser(problem_file, domain.domain_name, 
                 domain.types, domain.predicates, domain.actions, domain.constants)

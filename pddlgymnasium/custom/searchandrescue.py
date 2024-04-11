@@ -175,7 +175,7 @@ class PDDLSearchAndRescueEnv(PDDLEnv):
         else:
             assert render_version == "slow"
             render = slow_sar_render
-        super().__init__(domain_file=domain_file, problem_dir=problem_dir, render=render)
+        super().__init__(domain_file=domain_file, problem_path=problem_dir, render=render)
 
     def _get_successor_state(self, state, action, domain, **kwargs):
         """Custom (faster than generic)

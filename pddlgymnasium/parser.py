@@ -1,5 +1,7 @@
 """PDDL parsing.
 """
+import os.path
+
 from pddlgymnasium.structs import (Type, Predicate, Literal, LiteralConjunction,
                              LiteralDisjunction, Not, Anti, ForAll, Exists,
                              ProbabilisticEffect, TypedEntity, ground_literal,
@@ -441,9 +443,12 @@ class PDDLDomainParser(PDDLParser, PDDLDomain):
 
         self.domain_fname = domain_fname
 
-        # Read files.
-        with open(domain_fname, "r") as f:
-            self.domain = f.read().lower()
+        # read domain text
+        if os.path.isfile(domain_fname):  # read from file
+            with open(domain_fname, "r") as f:
+                self.domain = f.read().lower()
+        else:  # treat as PDDL domain string
+            self.domain = domain_fname.lower()
 
         # Is this domain probabilistic?
         self.is_probabilistic = ("probabilistic" in self.domain)
@@ -676,13 +681,17 @@ class PDDLProblemParser(PDDLParser):
         # structs.Literal representing the goal.
         self.goal = None
 
-        ## Read files.
-        with open(problem_fname, "r") as f:
-            self.problem = f.read().lower()
+        # read domain text
+        if os.path.isfile(problem_fname):  # read from file
+            with open(problem_fname, "r") as f:
+                self.problem = f.read().lower()
+        else:  # treat as PDDL domain string
+            self.problem = problem_fname.lower()
+
         self.problem = self._purge_comments(self.problem)
         assert ";" not in self.problem
 
-        ## Run parsing.
+        # Run parsing.
         self._parse_problem()
 
     def _parse_problem(self):

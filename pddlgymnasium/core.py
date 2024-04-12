@@ -282,9 +282,10 @@ class PDDLEnv(gym.Env):
     Parameters
     ----------
     domain_file : str
-        Path to a PDDL domain file.
-    problem_path : str
-        Path to a PDDL problem file or directory of PDDL problem files.
+        Path to a PDDL domain file or a PDDL domain as a string.
+    problem_path : str | list[str]
+        Path to a PDDL problem file or directory of PDDL problem files, or a PDDL problem as a string. If a list is
+        given, each item is treated as a path if exists or a string otherwise.
     render : fn or None
         An optional render function (obs -> img).
     seed : int
@@ -359,9 +360,10 @@ class PDDLEnv(gym.Env):
         Parameters
         ----------
         domain_file : str
-            Path to a PDDL domain file.
+            Path to a PDDL domain file or a PDDL domain as a string.
         problem_path : str
-            Path to a PDDL problem file or directory of PDDL problem files.
+            Path to a PDDL problem file or directory of PDDL problem files, or a PDDL problem as a string. If a list is
+            given, each item is treated as a path if exists or a string otherwise.
         operators_as_actions : bool
             See class docstirng.
 
@@ -376,10 +378,12 @@ class PDDLEnv(gym.Env):
             operators_as_actions=operators_as_actions)
 
         # gather problem files
-        if os.path.isfile(problem_path):  # if file given, treat as a list of 1 problem
-            problem_files = [problem_path]
-        else:
+        if isinstance(problem_path, list):  # if list given, treat as list of .pddl paths or strings
+            problem_files = problem_path
+        elif os.path.isdir(problem_path):  # if dir given, take all .pddl files in it
             problem_files = [f for f in glob.glob(os.path.join(problem_path, "*.pddl"))]
+        else:
+            problem_files = [problem_path]
 
         # parse problem files one by one
         problems = []

@@ -31,7 +31,7 @@ def register_pddl_env(name, is_test_env, other_args):
     register(
         id='PDDLEnv{}-v0'.format(gym_name),
         entry_point='pddlgymnasium.core:PDDLEnv',
-        kwargs=dict({'domain_file' : domain_file, 'problem_dir' : problem_dir,
+        kwargs=dict({'domain_file' : domain_file, 'problem_path' : problem_dir,
                      **other_args}),
     )
 

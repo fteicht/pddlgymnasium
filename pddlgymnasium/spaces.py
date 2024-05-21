@@ -36,7 +36,7 @@ class LiteralSpace(Space):
     def reset_initial_state(self, initial_state):
         self._objects = None
 
-    def _update_objects_from_state(self, state):
+    def _update_objects_from_state(self, state, relaxed=False):
         """Given a state, extract the objects and if they have changed, 
         recompute all ground literals
         """
@@ -56,7 +56,7 @@ class LiteralSpace(Space):
                     self._type_to_objs[t].append(obj)
 
         self._objects = state.objects
-        self._all_ground_literals = sorted(self._compute_all_ground_literals(state))
+        self._all_ground_literals = sorted(self._compute_all_ground_literals(state, relaxed=relaxed))
 
     def sample_literal(self, state):
         while True:
@@ -78,7 +78,7 @@ class LiteralSpace(Space):
         return set(l for l in self._all_ground_literals \
                    if self._lit_valid_test(state, l))
 
-    def _compute_all_ground_literals(self, state):
+    def _compute_all_ground_literals(self, state, relaxed=False):
         all_ground_literals = set()
         for predicate in self.predicates:
             choices = [self._type_to_objs[vt] for vt in predicate.var_types]
@@ -86,6 +86,8 @@ class LiteralSpace(Space):
                 if len(set(choice)) != len(choice):
                     continue
                 lit = predicate(*choice)
+                if relaxed and lit.is_anti:
+                    continue
                 all_ground_literals.add(lit)
         return all_ground_literals
 
@@ -196,7 +198,7 @@ class LiteralActionSpace(LiteralSpace):
             valid_literals.add(ground_action)
         return valid_literals
 
-    def _compute_all_ground_literals(self, state):
+    def _compute_all_ground_literals(self, state, relaxed=False):
         """Call FastDownward's instantiator.
         """
         # Generate temporary files to hand over to instantiator.
@@ -217,6 +219,13 @@ class LiteralActionSpace(LiteralSpace):
         task = downward_open(domain_fname, problem_fname)
         with nostdout():
             _, _, actions, _, _ = downward_explore(task)
+
+        if relaxed:
+            for action in actions:
+                for index, effect in reversed(list(enumerate(action.effects))):
+                    if effect.literal.negated:
+                        del action.effects[index]
+
         # Post-process to our representation.
         obj_name_to_obj = {obj.name: obj for obj in state.objects}
         all_ground_literals = set()

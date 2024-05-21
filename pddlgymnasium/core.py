@@ -304,7 +304,8 @@ class PDDLEnv(gym.Env):
     def __init__(self, domain_file, problem_path, render=None, seed=0,
                  raise_error_on_invalid_action=False,
                  operators_as_actions=False,
-                 dynamic_action_space=False):
+                 dynamic_action_space=False,
+                 relaxed=False):
         self._state = None
         self._domain_path = domain_file
         self._problem_path = problem_path
@@ -312,6 +313,7 @@ class PDDLEnv(gym.Env):
         self.seed(seed)
         self._raise_error_on_invalid_action = raise_error_on_invalid_action
         self.operators_as_actions = operators_as_actions
+        self._relaxed = relaxed
 
         # Set by self.fix_problem_index
         self._problem_index_fixed = False
@@ -320,7 +322,8 @@ class PDDLEnv(gym.Env):
 
         # Parse the PDDL files
         self.domain, self.problems = self.load_pddl(domain_file, problem_path,
-                                                    operators_as_actions=self.operators_as_actions)
+                                                    operators_as_actions=self.operators_as_actions,
+                                                    relaxed=self._relaxed)
 
         # Determine if the domain is STRIPS
         self._domain_is_strips = _check_domain_for_strips(self.domain)
@@ -353,7 +356,7 @@ class PDDLEnv(gym.Env):
             type_to_parent_types=self.domain.type_to_parent_types)
 
     @staticmethod
-    def load_pddl(domain_file, problem_path, operators_as_actions=False):
+    def load_pddl(domain_file, problem_path, operators_as_actions=False, relaxed=False):
         """
         Parse domain and problem PDDL files.
 
@@ -376,6 +379,18 @@ class PDDLEnv(gym.Env):
         domain = PDDLDomainParser(domain_file,
             expect_action_preds=(not operators_as_actions),
             operators_as_actions=operators_as_actions)
+
+        if relaxed:
+            new_ops = {}
+            for op in domain.operators.values():
+                effect_lits = []
+                for lit in op.effects.literals:
+                    if not lit.is_anti:
+                        effect_lits.append(lit)
+
+                new_ops[op.name] = op.__class__(op.name, op.params, op.preconds, op.effects.__class__(effect_lits))
+
+            domain.operators = new_ops
 
         # gather problem files
         if isinstance(problem_path, list):  # if list given, treat as list of .pddl paths or strings

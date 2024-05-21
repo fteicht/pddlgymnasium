@@ -46,9 +46,9 @@ class Operator:
 
     def __str__(self):
         s = self.name + "(" + ",".join(map(str, self.params)) + "): "
-        s += " & ".join(map(str, self.preconds.literals))
+        s += str(self.preconds)
         s += " => "
-        s += " & ".join(map(str, self.effects.literals))
+        s += str(self.effects)
         return s
 
     def pddl_str(self):

@@ -316,16 +316,16 @@ class LiteralConjunction:
         return True
 
     def __str__(self):
-        return "AND{}".format(self.literals)
+        return " & ".join(map(str, self.literals))
 
     def __repr__(self):
-        return str(self)
+        return "AND{}".format(self.literals)
 
     def __hash__(self):
-        return hash(str(self))
+        return hash(repr(self))
 
     def __eq__(self, other):
-        return str(self) == str(other)
+        return repr(self) == repr(other)
 
 
 class LiteralDisjunction:
@@ -352,16 +352,16 @@ class LiteralDisjunction:
         raise NotImplementedError("Goals can only be LiteralConjunctions")
 
     def __str__(self):
-        return "OR{}".format(self.literals)
+        return " | ".join(map(str, self.literals))
 
     def __repr__(self):
-        return str(self)
+        return "OR{}".format(self.literals)
 
     def __hash__(self):
-        return hash(str(self))
+        return hash(repr(self))
 
     def __eq__(self, other):
-        return str(self) == str(other)
+        return repr(self) == repr(other)
 
 
 class ForAll:

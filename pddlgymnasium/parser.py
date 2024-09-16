@@ -539,12 +539,9 @@ class PDDLDomainParser(PDDLParser, PDDLDomain):
             while " - " in remaining_type_str:
                 dash_index = remaining_type_str.index(" - ")
                 s = remaining_type_str[dash_index:]
-                super_start_index = dash_index + len(s) - len(s.lstrip()) + 2
+                super_start_index = dash_index + 3 + len(s[3:]) - len(s[3:].lstrip())
                 s = remaining_type_str[super_start_index:]
-                try:
-                    end_index_offset = min(s.index(" "), s.index("\n"))
-                except ValueError:
-                    end_index_offset = len(s)
+                end_index_offset = re.match('[^ \t\n]+', s).span()[1]
                 super_end_index = super_start_index + end_index_offset
                 super_type_name = remaining_type_str[super_start_index:super_end_index]
                 sub_type_names = remaining_type_str[:dash_index].split()

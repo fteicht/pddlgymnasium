@@ -81,14 +81,15 @@ class LiteralSpace(Space):
     def _compute_all_ground_literals(self, state, relaxed=False):
         all_ground_literals = set()
         for predicate in self.predicates:
-            choices = [self._type_to_objs[vt] for vt in predicate.var_types]
-            for choice in itertools.product(*choices):
-                if len(set(choice)) != len(choice):
-                    continue
-                lit = predicate(*choice)
-                if relaxed and lit.is_anti:
-                    continue
-                all_ground_literals.add(lit)
+            if predicate.var_types is not None:
+                choices = [self._type_to_objs[vt] for vt in predicate.var_types]
+                for choice in itertools.product(*choices):
+                    if len(set(choice)) != len(choice):
+                        continue
+                    lit = predicate(*choice)
+                    if relaxed and lit.is_anti:
+                        continue
+                    all_ground_literals.add(lit)
         return all_ground_literals
 
     def contains(self, x):

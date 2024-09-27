@@ -379,7 +379,7 @@ class PDDLDomain:
     def to_string(self):
         """Create PDDL string
         """
-        predicates = "\n\t".join([lit.pddl_str() for lit in self.predicates.values()])
+        predicates = "\n\t".join([lit.pddl_str() for lit in self.predicates.values() if lit.name != '=' and lit.name not in self.actions])
         operators = "\n\t".join([op.pddl_str() for op in self.operators.values()])
         if self.constants:
             constants_str = "\n\t".join(list(sorted(map(lambda o: str(o).replace(":", " - "),

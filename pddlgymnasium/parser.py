@@ -167,9 +167,9 @@ class PDDLParser:
             assert is_effect, "We only support probabilistic effects"
             lits = []
             probs = []
-            expr = string[14:-1].strip()
-            for match in re.finditer("(\d*\.\d+)", expr):
-                prob = float(match.group())
+            expr = ' ' + string[14:-1].strip()
+            for match in re.finditer("[ \t\n]+(\d*\.)?\d+[ \t\n]+", expr):
+                prob = float(match.group().strip())
                 subexpr = self._find_balanced_expression(expr[match.end():].strip(), 0)
                 lit = self._parse_into_literal(subexpr, params, is_effect=is_effect)
                 lits.append(lit)
